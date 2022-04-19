@@ -16,6 +16,8 @@ import sys
 import json
 
 import ipaddress
+import datetime
+from dateutil.parser import parse
 
 
 # Notes
@@ -25,6 +27,13 @@ import ipaddress
 
 # Detect data type
 
+def map_date(value, exact_match=True):
+    try:
+        var = parse(value, fuzzy=exact_match)
+        print(var)
+        return True
+    except: return False
+
 def map_type(value):
 
     if isinstance(value, list): return 'object'
@@ -32,6 +41,8 @@ def map_type(value):
     if isinstance(value, bool): return 'boolean'
     if isinstance(value, int): return 'long'
     if isinstance(value, float): return 'double'
+    if isinstance(value, type(datetime.datetime(2022, 4, 19))): return 'date'
+    if isinstance(value, type(datetime.date(2022, 4, 19))): return 'date'
 
     try:
         var = ipaddress.ip_address(value)
@@ -42,11 +53,11 @@ def map_type(value):
         var = ipaddress.ip_network(value)
         return 'ip_range'
     except: pass
+
+    if map_date(value): return 'date'
     
     if value == None:
         print('Found a null value. It is best not to use this mapping.')
-    
-    # Date and time fields have not been implemented yet.
 
     return 'text'
 
