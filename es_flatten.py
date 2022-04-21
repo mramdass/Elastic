@@ -24,6 +24,12 @@ def flatten(data, mapping={}, key_chain=[]):
         if isinstance(data[key], dict):
             key_chain.append(key)
             flatten(data[key], mapping, key_chain)
+        elif isinstance(data[key], list):
+            for count in range(len(data[key])):
+                if isinstance(data[key][count], dict) or isinstance(data[key][count], list):
+                    flatten(data[key][count], mapping, key_chain + [count])
+                else:
+                    mapping['.'.join(str(item) for item in key_chain + [key, count])] = data[key][count]
         else:
             mapping['.'.join(str(item) for item in key_chain) + f'.{key}'] = data[key]
     return mapping
@@ -31,5 +37,5 @@ def flatten(data, mapping={}, key_chain=[]):
 if __name__ == '__main__':
     data = read_json(sys.argv[1])
     mapping = flatten(data)
-    write_json(f'es_flatten_{sys.argv[1]}', mapping)
+    write_json(f'{sys.argv[1]}_flatten.json', mapping)
     print('fin')
