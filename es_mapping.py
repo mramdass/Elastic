@@ -1,4 +1,5 @@
 '''
+    Baltimore Field Office
     Munieshwar Ramdass
     2022-04-18
 
@@ -30,7 +31,6 @@ from dateutil.parser import parse
 def map_date(value, exact_match=True):
     try:
         var = parse(value, fuzzy=exact_match)
-        print(var)
         return True
     except: return False
 
@@ -78,6 +78,18 @@ def traverse_dict(data, mapping={'properties': {}}):
         if isinstance(data[key], dict):
             mapping['properties'][key] = {'properties': {}}
             traverse_dict(data[key], mapping['properties'][key])
+        elif isinstance(data[key], list):
+            if data[key] != []:
+                if isinstance(data[key][0], list) or isinstance(data[key][0], dict):
+                    mapping['properties'][key] = {'type': 'nested', 'properties': {}}
+                    traverse_dict(data[key][0], mapping['properties'][key])
+                else:
+                    # This will just label everything else by their type
+                    mapping['properties'][key] = {'type': map_type(data[key])}
+            else:
+                # This will just label everything else as 'object'
+                mapping['properties'][key] = {'properties': {}}
+                traverse_dict(data[key], mapping['properties'][key])
         else:
             mapping['properties'][key] = {'type': map_type(data[key])}
     return mapping
@@ -85,5 +97,5 @@ def traverse_dict(data, mapping={'properties': {}}):
 if __name__ == '__main__':
     data = read_json(sys.argv[1])
     mapping = traverse_dict(data)
-    write_json(f'es_mapping_{sys.argv[1]}', mapping)
+    write_json(f'{sys.argv[1]}_mapping.json', mapping)
     print('fin')
